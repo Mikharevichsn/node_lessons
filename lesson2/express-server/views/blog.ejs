@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <h2><%= subTitle %></h2>
+    <% if (user) { %>
+    <h3>Привет, <%= user.name %></h3>
+    <% } %>
+
+    <ul>
+      <% posts.forEach(function(post){ %>
+      <li><%= post %></li>
+      <% }); %>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "Ресторан 1",
+    "description": "Описание ресторана 1",
+    "averageBill": 1500,
+    "opened": true
+  },
+  {
+    "id": 2,
+    "name": "Ресторан 2",
+    "description": "Описание ресторана 2",
+    "averageBill": 2000,
+    "opened": true
+  },
+  {
+    "id": 3,
+    "name": "Название нового ресторана",
+    "description": "Описание ресторана",
+    "averageBill": 3200,
+    "opened": true
+  },
+  {
+    "id": 4,
+    "name": "Название нового ресторана",
+    "description": "Описание ресторана",
+    "averageBill": 3200,
+    "opened": true
+  },
+  {
+    "id": 5,
+    "name": "Название нового ресторана",
+    "description": "Описание ресторана",
+    "averageBill": 3200,
+    "opened": true
+  }
+]

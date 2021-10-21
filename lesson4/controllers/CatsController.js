@@ -1,24 +1,50 @@
-import { v4 as uuid } from 'uuid';
-import db from '../database/index.js';
 import { HttpCodes } from '../constants.js';
+import collections from '../database/index.js';
+import CatsModel from '../database/Cats.model.js';
+
+
+const { Cats } = collections;
 
 class CatsController {
   constructor() {}
+  
+  static async getAll(req, res) {
+    const cats = await Cats.find().toArray();
 
-  static getAll(req, res) {
     res.send({
       success: true,
       code: HttpCodes.OK,
       data: {
-        cats: db.data.cats,
+        cats,
       },
     });
   }
 
-  static getById(req, res) {
+  static async getById(req, res) {
     const { id } = req.params;
+    // const cat = await Cats.findOne({ _id: ObjectId(id) });
+    const cat = await CatsModel.findById(id);
+    if (cat) {
+      res.send({
+        success: true,
+        code: HttpCodes.OK,
+        data: {
+          cat,
+        },
+      });
+    } else {
+      res.send({
+        success: false,
+        code: HttpCodes.NOT_FOUND,
+        data: `Not found`,
+        message: `Кот не найден`,
+      });
+    }
+  }
 
-    const cat = db.data.cats.find((el) => el.id === id);
+  static async getByName(req, res) {
+    const { name } = req.params;
+    const cat = await Cats.findOne({ name });
     if (cat) {
       res.send({
         success: true,
@@ -38,9 +64,7 @@ class CatsController {
   }
 
   static async add(req, res) {
-    const cat = { id: uuid(), ...req.body };
-    db.data.cats.push(cat);
-    await db.write();
+    const cat = await Cats.insertOne({ ...req.body })
 
     res.send({
       success: true,
@@ -54,11 +78,10 @@ class CatsController {
   static async removeById(req, res) {
     const { id } = req.body;
 
-    const cat = db.data.cats.find((el) => el.id === id);
-
+    const cat = await CatsModel.findById(id);
+    
     if (cat) {
-      db.data.cats = db.data.cats.filter((el) => el.id !== id);
-      await db.write();
+      await CatsModel.deleteById(id);
 
       res.send({
         success: true,
@@ -79,21 +102,3 @@ class CatsController {
 }
 
 export default CatsController;
-
-// class CatsController {
-//   constructor() {}
-
-//   getAll(req, res) {
-//     res.send('все коты');
-//   };
-
-//   getById(req, res) {
-//     res.send('cat by id');
-//   };
-
-//   add(req, res) {
-//     res.send('add cat');
-//   };
-// }
-
-// module.exports = new CatsController();

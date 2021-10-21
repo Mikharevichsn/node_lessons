@@ -5,6 +5,7 @@ import CatsController from '../../controllers/CatsController.js';
 router
   .get('/', CatsController.getAll)
   .get('/:id', CatsController.getById)
+  .get('/get-by-name/:name', CatsController.getByName)
   .post('/', CatsController.add)
   .delete('/', CatsController.removeById);
 

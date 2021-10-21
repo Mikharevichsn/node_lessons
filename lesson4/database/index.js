@@ -1,12 +1,22 @@
-import { Low, JSONFile } from 'lowdb';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config();
 
-const adapter = new JSONFile(path.join(__dirname, 'db.json'));
-const db = new Low(adapter);
+const connection = async () => {
+  const client = await MongoClient.connect(
+    process.env.DB_URL,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
+  );
 
-await db.read();
+  const db = client.db();
+  const Cats = db.collection('cats');
+  return { Cats };
+}
 
-export default db;
+const connect = await connection();
+
+export default connect;

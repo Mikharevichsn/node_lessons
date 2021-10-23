@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { HttpCodes } from './constants.js';
 import catsRouter from './api/cats/catsRouter.js';
+import db from './database/index.js';
+console.log('🚀 ~ file: app.js ~ line 6 ~ db', db)
 
 const app = express();
 const PORT = process.env.PORT || 6789;

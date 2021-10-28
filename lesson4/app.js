@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { HttpCodes } from './constants.js';
 import catsRouter from './api/cats/catsRouter.js';
-import db from './database/index.js';
-console.log('🚀 ~ file: app.js ~ line 6 ~ db', db)
+import userRouter from './api/cats/userRouter.js';
+import './database/index.js';
 
 const app = express();
 const PORT = process.env.PORT || 6789;
@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/cat', catsRouter);
+app.use('/api/user', userRouter);
 
 app.get('/', (req, res) => {
   res.send('works!')

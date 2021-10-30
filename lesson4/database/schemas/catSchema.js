@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 const { Schema } = mongoose; 
 
 
@@ -13,8 +14,14 @@ const catSchema = new Schema({
   vaccinated: {
     type: Boolean,
     default: false,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
   }
 });
+
+catSchema.plugin(mongoosePaginate);
 
 const Cat = mongoose.model('cat', catSchema);
 

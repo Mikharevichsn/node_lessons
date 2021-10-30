@@ -1,17 +1,37 @@
 import { HttpCodes } from '../constants.js';
 import Cat from '../database/schemas/catSchema.js';
+import mongoose from 'mongoose';
+
 
 class CatsController {
   constructor() { }
 
   static async getAll(req, res) {
-    const cats = await Cat.find();
+    const userId = req.user._id;
+    const { offset = 0, limit = 5, sortBy, sortByDesc } = req.query;
+    const cats = await Cat.paginate({ owner: userId }, { 
+      offset,
+      limit,
+      sort: {
+        ...(sortBy && {[sortBy]: 1}),
+        ...(sortByDesc && {[sortByDesc]: -1})
+      },
+      populate: {
+        path: 'owner',
+        select: 'login email -_id'
+      }
+     });
+
+    const { docs, totalDocs, offset: respOffset, respLimit } = cats;
 
     res.send({
-      success: true,
+      success: true, 
       code: HttpCodes.OK,
       data: {
-        cats,
+        cats: docs,
+        totalDocs,
+        offset: respOffset,
+        limit: respLimit,
       },
     });
   }

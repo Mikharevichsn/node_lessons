@@ -2,30 +2,32 @@ import { HttpCodes } from '../constants.js';
 import Cat from '../database/schemas/catSchema.js';
 import mongoose from 'mongoose';
 
-
 class CatsController {
-  constructor() { }
+  constructor() {}
 
   static async getAll(req, res) {
     const userId = req.user._id;
     const { offset = 0, limit = 5, sortBy, sortByDesc } = req.query;
-    const cats = await Cat.paginate({ owner: userId }, { 
-      offset,
-      limit,
-      sort: {
-        ...(sortBy && {[sortBy]: 1}),
-        ...(sortByDesc && {[sortByDesc]: -1})
-      },
-      populate: {
-        path: 'owner',
-        select: 'login email -_id'
+    const cats = await Cat.paginate(
+      { owner: userId },
+      {
+        offset,
+        limit,
+        sort: {
+          ...(sortBy && { [sortBy]: 1 }),
+          ...(sortByDesc && { [sortByDesc]: -1 }),
+        },
+        populate: {
+          path: 'owner',
+          select: 'login email -_id',
+        },
       }
-     });
+    );
 
     const { docs, totalDocs, offset: respOffset, respLimit } = cats;
 
     res.send({
-      success: true, 
+      success: true,
       code: HttpCodes.OK,
       data: {
         cats: docs,
@@ -42,7 +44,7 @@ class CatsController {
     try {
       const cat = await Cat.findById(id);
 
-      res.send({
+      return res.send({
         success: true,
         code: HttpCodes.OK,
         data: {
@@ -50,7 +52,7 @@ class CatsController {
         },
       });
     } catch (err) {
-      res.send({
+      return res.send({
         success: false,
         code: HttpCodes.NOT_FOUND,
         data: `Not found`,
@@ -72,19 +74,12 @@ class CatsController {
           },
         });
       }
-
+    } catch (err) {
       return res.send({
         success: false,
         code: HttpCodes.NOT_FOUND,
         data: `Not found`,
-        message: `Кот не найден.`,
-      });
-    } catch(err) {
-      res.send({
-        success: false,
-        code: HttpCodes.INTERNAL_SERVER_ERROR,
-        data: `Неизвестная ошибка`,
-        message: `${err.message}`,
+        message: `Кот не найден. ${err.message}`,
       });
     }
   }
@@ -92,7 +87,7 @@ class CatsController {
   static async add(req, res) {
     try {
       const cat = await Cat.create(req.body);
-  
+
       res.send({
         success: true,
         code: HttpCodes.OK,
@@ -100,8 +95,7 @@ class CatsController {
           cat,
         },
       });
-
-    } catch(err) {
+    } catch (err) {
       res.send({
         success: false,
         code: HttpCodes.BAD_REQUEST,
@@ -123,7 +117,7 @@ class CatsController {
           cat,
         },
       });
-    } catch(err) {
+    } catch (err) {
       res.send({
         success: false,
         code: HttpCodes.NOT_FOUND,
@@ -138,9 +132,9 @@ class CatsController {
 
     try {
       const cat = await Cat.findByIdAndUpdate(
-        { _id: id},
+        { _id: id },
         { vaccinated: true },
-        { new: true },
+        { new: true }
       );
 
       res.send({
@@ -165,9 +159,9 @@ class CatsController {
 
     try {
       const cat = await Cat.findByIdAndUpdate(
-        { _id: id},
+        { _id: id },
         { ...rest },
-        { new: true },
+        { new: true }
       );
 
       res.send({

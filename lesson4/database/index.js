@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const db = await mongoose.connect(process.env.DB_URL, {});
+const db = mongoose.connect(process.env.DB_URL, {});
 
 mongoose.connection.on('connected', () => {
   console.log('Подключились к БД');

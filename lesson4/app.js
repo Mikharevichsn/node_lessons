@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { HttpCodes } from './constants.js';
 import catsRouter from './api/cats/catsRouter.js';
 import userRouter from './api/cats/userRouter.js';
-// import './database/index.js';
+import './database/index.js';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

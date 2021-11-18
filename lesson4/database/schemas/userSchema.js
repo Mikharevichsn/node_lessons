@@ -3,8 +3,7 @@ import bcrypt from 'bcryptjs';
 
 const SALT_FACTOR = 10;
 const salt = await bcrypt.genSalt(SALT_FACTOR);
-const { Schema } = mongoose; 
-
+const { Schema } = mongoose;
 
 const userSchema = new Schema({
   login: {
@@ -14,16 +13,21 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: [true, 'Поле PASSWORD обязательно к заполнению']
+    required: [true, 'Поле PASSWORD обязательно к заполнению'],
   },
   email: {
     type: String,
     unique: true,
-    required: [true, 'Поле EMAIL обязательно к заполнению']
+    required: [true, 'Поле EMAIL обязательно к заполнению'],
   },
   token: {
     type: [String, null],
-  }
+  },
+  emailConfirmed: Boolean,
+  confirmToken: {
+    type: String,
+    unique: true,
+  },
 });
 
 userSchema.pre('save', async function (next) {

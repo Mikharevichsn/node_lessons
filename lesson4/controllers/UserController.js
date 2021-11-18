@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import { v4 as uuid } from 'uuid';
 import { HttpCodes } from '../constants.js';
 import User from '../database/schemas/userSchema.js';
-import dotenv from 'dotenv';
+import { sendMail } from '../helpers/sendMail.js';
 
 dotenv.config();
 
@@ -36,9 +38,21 @@ class UserController {
     }
 
     try {
-      const newUser = await User.create(req.body);
-      console.log('newUser = ', newUser);
-      const { login, _id: id } = newUser;
+      const confirmToken = uuid();
+      const newUser = await User.create({
+        ...req.body,
+        emailConfirmed: false,
+        confirmToken,
+      });
+
+      const { login, _id: id, email } = newUser;
+
+      sendMail({
+        to: email,
+        subject: 'Подтвердите адрес электронной почты',
+        html: `Добрый день! \nДля подтверждения адреса перейдите по <a href="http://localhost:6789/api/user/confirm/${confirmToken}">ссылке</a>`,
+      });
+
       res.send({
         success: true,
         code: HttpCodes.OK,
@@ -93,168 +107,88 @@ class UserController {
     });
   }
 
-  // static async getAll(req, res) {
-  //   const cats = await Cat.find();
+  static async confirmEmail(req, res) {
+    const { confirmToken } = req.params;
 
-  //   res.send({
-  //     success: true,
-  //     code: HttpCodes.OK,
-  //     data: {
-  //       cats,
-  //     },
-  //   });
-  // }
+    if (!confirmToken) {
+      return res.send({
+        success: false,
+        code: HttpCodes.BAD_REQUEST,
+        data: 'Bad request',
+        message: `Ошибка! ${err.message}`,
+      });
+    }
 
-  // static async getById(req, res) {
-  //   const { id } = req.params;
+    const user = await User.findOne({ confirmToken });
 
-  //   try {
-  //     const cat = await Cat.findById(id);
+    if (!user) {
+      return res.send({
+        success: false,
+        code: HttpCodes.NOT_FOUND,
+        data: 'Not found',
+        message: 'Пользователь не найден',
+      });
+    }
 
-  //     res.send({
-  //       success: true,
-  //       code: HttpCodes.OK,
-  //       data: {
-  //         cat,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.NOT_FOUND,
-  //       data: `Not found`,
-  //       message: `Кот не найден. ${err.message}`,
-  //     });
-  //   }
-  // }
+    user.confirmToken = null;
+    user.emailConfirmed = true;
+    await user.save();
 
-  // static async getByName(req, res) {
-  //   const { name } = req.params;
-  //   try {
-  //     const cat = await Cat.findOne({ name });
-  //     if (cat) {
-  //       return res.send({
-  //         success: true,
-  //         code: HttpCodes.OK,
-  //         data: {
-  //           cat,
-  //         },
-  //       });
-  //     }
+    return res.send({
+      success: true,
+      code: HttpCodes.OK,
+      data: null,
+    });
+  }
 
-  //     return res.send({
-  //       success: false,
-  //       code: HttpCodes.NOT_FOUND,
-  //       data: `Not found`,
-  //       message: `Кот не найден.`,
-  //     });
-  //   } catch(err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.INTERNAL_SERVER_ERROR,
-  //       data: `Неизвестная ошибка`,
-  //       message: `${err.message}`,
-  //     });
-  //   }
-  // }
+  static async verifyEmail(req, res) {
+    const { email } = req.body;
 
-  // static async add(req, res) {
-  //   try {
-  //     const cat = await Cat.create(req.body);
+    if (!email) {
+      return res.send({
+        success: false,
+        code: HttpCodes.BAD_REQUEST,
+        data: 'Bad request',
+        message: 'missing required field email',
+      });
+    }
 
-  //     res.send({
-  //       success: true,
-  //       code: HttpCodes.OK,
-  //       data: {
-  //         cat,
-  //       },
-  //     });
+    const user = await User.findOne({ email });
 
-  //   } catch(err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.BAD_REQUEST,
-  //       data: `Некорректный запрос`,
-  //       message: `${err.message}`,
-  //     });
-  //   }
-  // }
+    if (!user) {
+      return res.send({
+        success: false,
+        code: HttpCodes.NOT_FOUND,
+        data: 'Not found',
+        message: 'Пользователь не найден',
+      });
+    }
 
-  // static async removeById(req, res) {
-  //   const { id } = req.body;
+    if (user.emailConfirmed) {
+      return res.send({
+        success: false,
+        code: HttpCodes.BAD_REQUEST,
+        data: 'Bad request',
+        message: 'Verification has already been passed',
+      });
+    }
 
-  //   try {
-  //     const cat = await Cat.findByIdAndRemove(id);
-  //     res.send({
-  //       success: true,
-  //       code: HttpCodes.OK,
-  //       data: {
-  //         cat,
-  //       },
-  //     });
-  //   } catch(err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.NOT_FOUND,
-  //       data: `Not found`,
-  //       message: `Кот не найден`,
-  //     });
-  //   }
-  // }
+    const { confirmToken } = user;
 
-  // static async vaccinateById(req, res) {
-  //   const { id } = req.params;
+    sendMail({
+      to: email,
+      subject: 'ПОВТОРНО! Подтвердите адрес электронной почты',
+      html: `Добрый день! \nДля подтверждения адреса перейдите по <a href="http://localhost:6789/api/user/confirm/${confirmToken}">ссылке</a>`,
+    });
 
-  //   try {
-  //     const cat = await Cat.findByIdAndUpdate(
-  //       { _id: id},
-  //       { vaccinated: true },
-  //       { new: true },
-  //     );
-
-  //     res.send({
-  //       success: true,
-  //       code: HttpCodes.OK,
-  //       data: {
-  //         cat,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.NOT_FOUND,
-  //       data: `Not found`,
-  //       message: `Кот не найден. ${err.message}`,
-  //     });
-  //   }
-  // }
-
-  // static async updateById(req, res) {
-  //   const { id, ...rest } = req.body;
-
-  //   try {
-  //     const cat = await Cat.findByIdAndUpdate(
-  //       { _id: id},
-  //       { ...rest },
-  //       { new: true },
-  //     );
-
-  //     res.send({
-  //       success: true,
-  //       code: HttpCodes.OK,
-  //       data: {
-  //         cat,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     res.send({
-  //       success: false,
-  //       code: HttpCodes.NOT_FOUND,
-  //       data: `Not found`,
-  //       message: `Кот не найден. ${err.message}`,
-  //     });
-  //   }
-  // }
+    return res.send({
+      success: true,
+      code: HttpCodes.OK,
+      data: {
+        messsage: 'Verification email sent',
+      },
+    });
+  }
 }
 
 export default UserController;

@@ -14,6 +14,7 @@ const limiter = rateLimit({
 router
   .post('/register', limiter, UserController.register)
   .post('/login', UserController.login)
-  // .post('/', UserController.add)
+  .get('/confirm/:confirmToken', UserController.confirmEmail)
+  .post('/verify', UserController.verifyEmail)
 
 export default router;

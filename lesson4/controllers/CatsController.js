@@ -26,7 +26,7 @@ class CatsController {
 
     const { docs, totalDocs, offset: respOffset, respLimit } = cats;
 
-    res.send({
+    return res.send({
       success: true,
       code: HttpCodes.OK,
       data: {

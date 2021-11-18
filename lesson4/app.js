@@ -5,17 +5,17 @@ import rateLimit from 'express-rate-limit';
 import { HttpCodes } from './constants.js';
 import catsRouter from './api/cats/catsRouter.js';
 import userRouter from './api/cats/userRouter.js';
-import './database/index.js';
+// import './database/index.js';
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   handler: (req, res) => {
-    res.status(403).send({ message: ' Превышен лимит запросов'})
-  }
+    res.status(403).send({ message: ' Превышен лимит запросов' });
+  },
 });
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 6789;
 
 app.use(helmet());
@@ -28,8 +28,8 @@ app.use('/api/cat', catsRouter);
 app.use('/api/user', userRouter);
 
 app.get('/', (req, res) => {
-  res.send('works!')
-})
+  res.send('works!');
+});
 
 app.use((req, res, next) => {
   console.log(res);
@@ -45,17 +45,19 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   err.status = err.status ? err.status : HttpCodes.INTERNAL_SERVER_ERROR;
 
-  const data = err.status >= 500 && err.status < 600 ? 'Internal Server Error' : err.data;
+  const data =
+    err.status >= 500 && err.status < 600 ? 'Internal Server Error' : err.data;
   const message = err.message || 'Упс! Что-то сломалось! Мы уже чиним!';
 
   res.status(err.status).send({
     success: false,
     code: err.status,
     data,
-    message: err.status >= 500 && err.status < 600 ? 'Internal Server Error' : message,
+    message:
+      err.status >= 500 && err.status < 600 ? 'Internal Server Error' : message,
   });
 });
 
 app.listen(PORT, () => {
   console.log(`Server started on ${PORT}`);
-})
+});

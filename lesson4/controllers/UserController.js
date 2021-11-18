@@ -72,8 +72,7 @@ class UserController {
 
     if (bcrypt.compareSync(password, user.password)) {
       const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '1h' });
-      console.log('🚀 ~ file: UserController.js ~ line 75 ~ UserController ~ login ~ token', token)
-      await User.updateOne({ _id: user.id}, { token });
+      await User.updateOne({ _id: user.id }, { token });
 
       return res.send({
         success: true,

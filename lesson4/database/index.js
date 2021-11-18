@@ -3,10 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const db = mongoose.connect(
-  process.env.DB_URL,
-  {}
-);
+const db = await mongoose.connect(process.env.DB_URL, {});
 
 mongoose.connection.on('connected', () => {
   console.log('Подключились к БД');
@@ -25,6 +22,6 @@ process.on('SIGINT', () => {
   mongoose.connection.close(() => {
     process.exit(1);
   });
-})
+});
 
 export default db;
